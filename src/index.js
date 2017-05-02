@@ -190,14 +190,11 @@ function resolveImportId(result, stmt, options, state)
     .then((importedContent) => {
       // Merge loaded statements
       stmt.children = importedContent.reduce((currentContent, statements) => {
-        if (statements) {
-          currentContent = currentContent.concat(statements)
-        }
-        return currentContent
+        return statements ? currentContent.concat(statements) : currentContent
       }, [])
     })
-    .catch((err) => {
-      result.warn(err.message, { node: atRule })
+    .catch((error) => {
+      result.warn(error.message, { node: atRule })
     })
 }
 
@@ -220,14 +217,15 @@ function loadImportContent(result, stmt, filename, options, state)
         return content
       }
       return Promise.resolve(options.transform(content, filename, options))
-        .then((transformed) =>
-         typeof transformed === "string" ? transformed : content
+        .then((transformed) => {
+          return typeof transformed === "string" ? transformed : content
+        }
       )
     })
     .then((content) => {
       if (content.trim() === "")
       {
-        result.warn(filename + " is empty", { node: atRule })
+        result.warn(`${filename} is empty`, { node: atRule })
         return null
       }
 
